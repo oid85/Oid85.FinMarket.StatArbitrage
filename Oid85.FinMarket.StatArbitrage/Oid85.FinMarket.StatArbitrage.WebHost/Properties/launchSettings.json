@@ -1,13 +1,13 @@
 ﻿{
     "profiles": {
-        "Oid85.PrintTemplate.WebHost": {
+        "Oid85.FinMarket.StatArbitrage.WebHost": {
             "commandName": "Project",
             "launchBrowser": true,
-            "launchUrl": "http://localhost:4001",
+            "launchUrl": "http://localhost:10001",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
-            "applicationUrl": "http://localhost:4001"
+            "applicationUrl": "http://localhost:10001"
         }
     },
     "$schema": "http://json.schemastore.org/launchsettings.json"
