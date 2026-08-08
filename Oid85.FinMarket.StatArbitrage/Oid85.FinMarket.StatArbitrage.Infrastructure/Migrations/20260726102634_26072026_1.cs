@@ -1,19 +1,15 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Migrations
+namespace Oid85.FinMarket.Algo.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class _05082026_1 : Migration
+    public partial class _26072026_1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "public");
-
             migrationBuilder.CreateTable(
                 name: "ParameterEntities",
                 schema: "public",

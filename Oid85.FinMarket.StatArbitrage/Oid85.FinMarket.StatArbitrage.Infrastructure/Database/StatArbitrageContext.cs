@@ -7,6 +7,7 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database;
 
 public class StatArbitrageContext(DbContextOptions<StatArbitrageContext> options) : DbContext(options)
 {
+    public DbSet<StrategyExecuteResultEntity> StrategyExecuteResultEntities { get; set; }
     public DbSet<ParameterEntity> ParameterEntities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -18,7 +19,7 @@ public class StatArbitrageContext(DbContextOptions<StatArbitrageContext> options
             .ApplyConfigurationsFromAssembly(
                 typeof(StatArbitrageContext).Assembly,
                 type => type
-                    .GetInterface(typeof(IPrintTemplateSchema).ToString()) != null)
+                    .GetInterface(typeof(IStatArbitrageSchema).ToString()) != null)
             .UseIdentityAlwaysColumns();
     }    
 }

@@ -2,5 +2,7 @@
 {
     public interface IParameterRepository
     {
+        Task<string?> GetParameterValueAsync(string name);
+        Task SetParameterValueAsync(string name, string value);
     }
 }

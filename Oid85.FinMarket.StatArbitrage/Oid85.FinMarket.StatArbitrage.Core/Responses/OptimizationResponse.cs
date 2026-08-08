@@ -1,0 +1,6 @@
+﻿namespace Oid85.FinMarket.StatArbitrage.Core.Responses
+{
+    public class OptimizationResponse
+    {
+    }
+}

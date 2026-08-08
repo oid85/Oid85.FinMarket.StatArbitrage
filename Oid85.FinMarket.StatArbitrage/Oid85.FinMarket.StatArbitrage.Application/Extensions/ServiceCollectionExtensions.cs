@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Oid85.FinMarket.StatArbitrage.Application.Factories;
+using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Factories;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services;
 using Oid85.FinMarket.StatArbitrage.Application.Services;
 
@@ -9,6 +11,12 @@ public static class ServiceCollectionExtensions
     public static void ConfigureApplicationServices(
         this IServiceCollection services)
     {
-        services.AddTransient<IStatArbitrageService, StatArbitrageService>();
+        services.AddScoped<IStatArbitrageService, StatArbitrageService>();
+        services.AddScoped<IDataService, DataService>();
+        services.AddScoped<IMonitorService, MonitorService>();
+
+        services.AddScoped<IIndicatorFactory, IndicatorFactory>();
+
+        // services.AddKeyedTransient<Strategy, UltimateSmootherInclinationLong>("UltimateSmootherInclinationLong");
     }
 }

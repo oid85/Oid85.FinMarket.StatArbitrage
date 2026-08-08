@@ -9,11 +9,11 @@ using Oid85.FinMarket.StatArbitrage.Infrastructure.Database;
 
 #nullable disable
 
-namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Migrations
+namespace Oid85.FinMarket.Algo.Infrastructure.Migrations
 {
     [DbContext(typeof(StatArbitrageContext))]
-    [Migration("20260805153233_05082026_1")]
-    partial class _05082026_1
+    [Migration("20260702090925_02072026_1")]
+    partial class _02072026_1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,7 +26,7 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns(modelBuilder);
 
-            modelBuilder.Entity("Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Entities.ParameterEntity", b =>
+            modelBuilder.Entity("Oid85.FinMarket.Algo.Infrastructure.Database.Entities.ParameterEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

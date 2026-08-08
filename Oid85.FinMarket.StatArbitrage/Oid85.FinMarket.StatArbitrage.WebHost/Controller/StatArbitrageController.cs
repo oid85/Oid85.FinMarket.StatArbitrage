@@ -13,19 +13,45 @@ namespace Oid85.FinMarket.StatArbitrage.WebHost.Controller;
 [Route("api/stat-arbitrage")]
 [ApiController]
 public class StatArbitrageController(
-    IStatArbitrageService statArbitrageService)
+    IStatArbitrageService algoService)
     : BaseController
 {
     /// <summary>
-    /// Сгенерировать печатную форму
+    /// Список портфелей
     /// </summary>
-    [HttpPost("monitor")]
-    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status500InternalServerError)]
-    public Task<IActionResult> MonitorAsync(
-        [FromBody] MonitorRequest request) =>
+    [HttpPost("portfolio/list")]
+    [ProducesResponseType(typeof(BaseResponse<PortfolioListResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<PortfolioListResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<PortfolioListResponse>), StatusCodes.Status500InternalServerError)]
+    public Task<IActionResult> PortfolioListAsync(
+        [FromBody] PortfolioListRequest request) =>
         GetResponseAsync(
-            () => statArbitrageService.MonitorAsync(request),
-            result => new BaseResponse<MonitorResponse> { Result = result });
+            () => algoService.PortfolioListAsync(request),
+            result => new BaseResponse<PortfolioListResponse> { Result = result });
+
+    /// <summary>
+    /// Получить сумму портфеля
+    /// </summary>
+    [HttpPost("portfolio/total-sum/get")]
+    [ProducesResponseType(typeof(BaseResponse<GetPortfolioTotalSumResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<GetPortfolioTotalSumResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<GetPortfolioTotalSumResponse>), StatusCodes.Status500InternalServerError)]
+    public Task<IActionResult> GetPortfolioTotalSumAsync(
+        [FromBody] GetPortfolioTotalSumRequest request) =>
+        GetResponseAsync(
+            () => algoService.GetPortfolioTotalSumAsync(request),
+            result => new BaseResponse<GetPortfolioTotalSumResponse> { Result = result });
+
+    /// <summary>
+    /// Редактировать сумму портфеля
+    /// </summary>
+    [HttpPost("portfolio/total-sum/edit")]
+    [ProducesResponseType(typeof(BaseResponse<EditPortfolioTotalSumResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<EditPortfolioTotalSumResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<EditPortfolioTotalSumResponse>), StatusCodes.Status500InternalServerError)]
+    public Task<IActionResult> EditPortfolioTotalSumAsync(
+        [FromBody] EditPortfolioTotalSumRequest request) =>
+        GetResponseAsync(
+            () => algoService.EditPortfolioTotalSumAsync(request),
+            result => new BaseResponse<EditPortfolioTotalSumResponse> { Result = result });    
 }

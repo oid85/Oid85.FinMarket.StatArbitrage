@@ -2,11 +2,6 @@
 {
     public class MonitorRequest
     {
-        public ResponseDataModel Data { get; set; } = new();
-    }
-
-    public class ResponseDataModel
-    {
-
+        public string PortfolioName { get; set; } = string.Empty;
     }
 }
