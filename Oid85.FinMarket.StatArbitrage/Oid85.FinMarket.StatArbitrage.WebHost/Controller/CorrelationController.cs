@@ -19,7 +19,7 @@ public class CorrelationController(
     /// <summary>
     /// Расчитать корреляции
     /// </summary>
-    [HttpPost("portfolio/calculate")]
+    [HttpPost("calculate")]
     [ProducesResponseType(typeof(BaseResponse<CalculateCorrelationResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CalculateCorrelationResponse>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BaseResponse<CalculateCorrelationResponse>), StatusCodes.Status500InternalServerError)]

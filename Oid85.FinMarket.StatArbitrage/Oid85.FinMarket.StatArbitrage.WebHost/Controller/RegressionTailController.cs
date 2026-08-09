@@ -19,7 +19,7 @@ public class RegressionTailController(
     /// <summary>
     /// Расчитать хвосты регрессии
     /// </summary>
-    [HttpPost("portfolio/calculate")]
+    [HttpPost("calculate")]
     [ProducesResponseType(typeof(BaseResponse<CalculateRegressionTailResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CalculateRegressionTailResponse>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BaseResponse<CalculateRegressionTailResponse>), StatusCodes.Status500InternalServerError)]
