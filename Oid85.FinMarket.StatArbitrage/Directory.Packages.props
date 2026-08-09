@@ -5,6 +5,8 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Accord.Math" Version="3.8.0" />
+    <PackageVersion Include="Accord.Statistics" Version="3.8.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.10" />

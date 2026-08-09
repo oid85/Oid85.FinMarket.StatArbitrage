@@ -2,10 +2,10 @@
 
 namespace Oid85.FinMarket.StatArbitrage.Application.Interfaces.Repositories
 {
-    public interface ICorrelationRepository
+    public interface IRegressionTailRepository
     {
-        Task AddAsync(List<Correlation> correlations);
-        Task<List<Correlation>> GetAsync(string portfolioName);
+        Task AddAsync(List<RegressionTailSet> regressionTails);
+        Task<List<RegressionTailSet>> GetAsync(string portfolioName);
         Task DeleteAsync(string portfolioName);
     }
 }

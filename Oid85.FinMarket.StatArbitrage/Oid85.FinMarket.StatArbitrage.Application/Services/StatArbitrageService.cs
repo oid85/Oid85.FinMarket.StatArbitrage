@@ -389,7 +389,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// </summary>
         private async Task<Dictionary<string, List<Candle>>> GetCandleDataAsync(bool isOptimization, List<string> tickers)
         {
-            var dateRange = isOptimization 
+            var (from, to) = isOptimization 
                 ? StatArbitrageHelper.GetOptimizationDates(options.Value) 
                 : StatArbitrageHelper.GetBacktestDates(options.Value);
 
@@ -400,8 +400,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             foreach (string ticker in tickers)
             {
                 var candles = candleData[ticker]
-                    .Where(x => x.Date >= dateRange.From)
-                    .Where(x => x.Date <= dateRange.To)
+                    .Where(x => x.Date >= from)
+                    .Where(x => x.Date <= to)
                     .ToList();
 
                 if (candles.Count == 0)

@@ -1,30 +1,33 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Repositories;
 using Oid85.FinMarket.StatArbitrage.Core.Models;
 
 namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
 {
-    public class CorrelationRepository(
+    public class RegressionTailRepository(
         IDbContextFactory<StatArbitrageContext> contextFactory) 
-        : ICorrelationRepository
+        : IRegressionTailRepository
     {
-        public async Task AddAsync(List<Correlation> correlations)
+        public async Task AddAsync(List<RegressionTailSet> regressionTails)
         {
             await using var context = await contextFactory.CreateDbContextAsync();
 
-            if (correlations is []) return;
+            if (regressionTails is []) return;
 
-            var entities = correlations
-                .Select(x => new Entities.CorrelationEntity
+            var entities = regressionTails
+                .Select(x => new Entities.RegressionTailSetEntity
                 {
                     PortfolioName = x.PortfolioName,
                     TickerFirst = x.TickerFirst,
                     TickerSecond = x.TickerSecond,
-                    Value = x.Value
+                    Slope = x.Slope,
+                    Intercept = x.Intercept,
+                    Tails = JsonSerializer.Serialize(x.Tails)
                 })
                 .ToList();
 
-            await context.CorrelationEntities.AddRangeAsync(entities);
+            await context.RegressionTailSetEntities.AddRangeAsync(entities);
             await context.SaveChangesAsync();
         }
 
@@ -32,28 +35,30 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
         {
             await using var context = await contextFactory.CreateDbContextAsync();
 
-            await context.CorrelationEntities
+            await context.RegressionTailSetEntities
                 .Where(x => x.PortfolioName == portfolioName)
                 .ExecuteDeleteAsync();
 
             await context.SaveChangesAsync();
         }
 
-        public async Task<List<Correlation>> GetAsync(string portfolioName)
+        public async Task<List<RegressionTailSet>> GetAsync(string portfolioName)
         {
             await using var context = await contextFactory.CreateDbContextAsync();
 
-            return [.. (await context.CorrelationEntities
+            return [.. (await context.RegressionTailSetEntities
                 .Where(x => x.PortfolioName == portfolioName)
                 .AsNoTracking()
                 .ToListAsync())
                 .Select(x => 
-                new Correlation
+                new RegressionTailSet
                 {
                     PortfolioName = x.PortfolioName,
                     TickerFirst = x.TickerFirst,
                     TickerSecond = x.TickerSecond,
-                    Value = x.Value
+                    Slope = x.Slope,
+                    Intercept = x.Intercept,
+                    Tails = JsonSerializer.Deserialize<List<DateValue<double>>>(x.Tails)!
                 })];
         }
     }

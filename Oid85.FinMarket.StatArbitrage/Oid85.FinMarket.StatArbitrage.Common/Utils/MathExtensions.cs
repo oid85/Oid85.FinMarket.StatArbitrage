@@ -146,6 +146,6 @@
         {
             double average = values.Average();
             return values.Select(x => x - average).ToList();
-        }         
+        }
     }
 }
