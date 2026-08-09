@@ -28,4 +28,17 @@ public class RegressionTailController(
         GetResponseAsync(
             () => regressionTailService.CalculateRegressionTailAsync(request),
             result => new BaseResponse<CalculateRegressionTailResponse> { Result = result });
+
+    /// <summary>
+    /// Получить хвосты регрессии
+    /// </summary>
+    [HttpPost("list")]
+    [ProducesResponseType(typeof(BaseResponse<GetRegressionTailResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<GetRegressionTailResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<GetRegressionTailResponse>), StatusCodes.Status500InternalServerError)]
+    public Task<IActionResult> GetRegressionTailAsync(
+        [FromBody] GetRegressionTailRequest request) =>
+        GetResponseAsync(
+            () => regressionTailService.GetRegressionTailAsync(request),
+            result => new BaseResponse<GetRegressionTailResponse> { Result = result });
 }

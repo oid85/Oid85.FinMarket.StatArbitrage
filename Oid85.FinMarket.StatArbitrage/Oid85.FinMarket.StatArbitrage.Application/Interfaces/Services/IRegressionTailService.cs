@@ -6,5 +6,6 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services
     public interface IRegressionTailService
     {
         Task<CalculateRegressionTailResponse> CalculateRegressionTailAsync(CalculateRegressionTailRequest request);
+        Task<GetRegressionTailResponse> GetRegressionTailAsync(GetRegressionTailRequest request);
     }
 }

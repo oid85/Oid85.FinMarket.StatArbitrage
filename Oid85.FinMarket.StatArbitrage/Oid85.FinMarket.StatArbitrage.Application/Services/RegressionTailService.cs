@@ -119,6 +119,34 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             return new();
         }
 
+        public async Task<GetRegressionTailResponse> GetRegressionTailAsync(GetRegressionTailRequest request)
+        {
+            var statArbitrageSettings = options.Value;
+
+            if (string.IsNullOrEmpty(request.PortfolioName))
+                request.PortfolioName = statArbitrageSettings.Portfolios.First().Name;
+
+            var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 30));
+            var to = DateOnly.FromDateTime(DateTime.Today);
+
+            var regressionTailSet = (await regressionTailRepository.GetAsync(request.PortfolioName));
+
+            var response = new GetRegressionTailResponse
+            { 
+                PortfolioName = request.PortfolioName,
+                Items = [.. regressionTailSet
+                    .Select(x => 
+                    new RegressionTailData
+                    {
+                        TickerFirst = x.TickerFirst,
+                        TickerSecond = x.TickerSecond,
+                        Tails = [.. x.Tails.Where(x => x.Date >= from).Where(x => x.Date <= to)]
+                    })]
+            };
+
+            return response;
+        }
+
         /// <summary>
         /// Z-score
         /// </summary>
