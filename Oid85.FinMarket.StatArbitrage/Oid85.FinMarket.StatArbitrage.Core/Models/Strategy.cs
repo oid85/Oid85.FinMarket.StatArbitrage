@@ -42,7 +42,7 @@ public class Strategy
 
     public (List<double> First, List<double> Second) LowPrices => (Candles.First.Select(x => x.Low).ToList(), Candles.Second.Select(x => x.Low).ToList());
 
-    public List<DateValue<double>> Spreads { get; set; } = [];
+    public List<DateValue<double>> Tails { get; set; } = [];
 
     public List<DiagramPoint> DiagramPoints { get; set; } = [];
     
