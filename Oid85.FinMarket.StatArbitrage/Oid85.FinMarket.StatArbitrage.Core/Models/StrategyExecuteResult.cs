@@ -20,7 +20,12 @@ public class StrategyExecuteResult
     /// <summary>
     /// Тикер инструмента
     /// </summary>
-    public string Ticker { get; set; }
+    public string TickerFirst { get; set; }
+
+    /// <summary>
+    /// Тикер инструмента
+    /// </summary>
+    public string TickerSecond { get; set; }
 
     /// <summary>
     /// Наименование портфеля
@@ -60,7 +65,12 @@ public class StrategyExecuteResult
     /// <summary>
     /// Текущая позиция
     /// </summary>
-    public int CurrentPosition { get; set; }
+    public int CurrentPositionFirst { get; set; }
+
+    /// <summary>
+    /// Текущая позиция
+    /// </summary>
+    public int CurrentPositionSecond { get; set; }
 
     /// <summary>
     /// Текущая позиция (стоимость)

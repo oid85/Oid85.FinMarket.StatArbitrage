@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IStrategyExecuteResultRepository, StrategyExecuteResultRepository>();
         services.AddScoped<IParameterRepository, ParameterRepository>();
+        services.AddScoped<ICorrelationRepository, CorrelationRepository>();
     }
 
     public static void ConfigureStorageApiClient(

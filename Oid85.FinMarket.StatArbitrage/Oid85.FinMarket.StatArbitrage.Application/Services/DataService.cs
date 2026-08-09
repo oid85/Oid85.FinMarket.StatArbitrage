@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Oid85.FinMarket.StatArbitrage.Application.Interfaces.ApiClients;
+﻿using Oid85.FinMarket.StatArbitrage.Application.Interfaces.ApiClients;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services;
 using Oid85.FinMarket.StatArbitrage.Common.KnownConstants;
 using Oid85.FinMarket.StatArbitrage.Core.Models;

@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Oid85.FinMarket.StatArbitrage.Application.Helpers;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services;
-using Oid85.FinMarket.StatArbitrage.Common.KnownConstants;
-using Oid85.FinMarket.StatArbitrage.Common.Utils;
 using Oid85.FinMarket.StatArbitrage.Core.Configuration;
 using Oid85.FinMarket.StatArbitrage.Core.Models;
 

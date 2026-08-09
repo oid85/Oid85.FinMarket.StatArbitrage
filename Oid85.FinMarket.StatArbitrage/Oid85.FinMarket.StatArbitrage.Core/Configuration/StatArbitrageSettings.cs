@@ -2,11 +2,18 @@
 {
     public class StatArbitrageSettings
     {
+        public CorrelationSettings CorrelationSettings { get; set; }
         public BacktestSettings BacktestSettings { get; set; }
         public StrategyExecuteResultFilterSettings StrategyExecuteResultFilter { get; set; }
         public List<PortfolioSettings> Portfolios { get; set; }
         public List<TickerListSettings> TickerLists { get; set; }
         public List<StrategySettings> Strategies { get; set; }
+    }
+
+    public class CorrelationSettings
+    {
+        public double MinValue { get; set; }
+        public double MaxValue { get; set; }
     }
 
     public class BacktestSettings

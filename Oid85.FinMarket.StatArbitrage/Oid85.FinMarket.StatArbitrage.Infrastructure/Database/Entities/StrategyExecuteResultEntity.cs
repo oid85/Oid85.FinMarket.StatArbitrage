@@ -13,11 +13,16 @@ public class StrategyExecuteResultEntity : BaseEntity
     /// Конец периода
     /// </summary>
     public DateOnly EndDate { get; set; }
-    
+
     /// <summary>
     /// Тикер инструмента
     /// </summary>
-    public string Ticker { get; set; }
+    public string TickerFirst { get; set; }
+
+    /// <summary>
+    /// Тикер инструмента
+    /// </summary>
+    public string TickerSecond { get; set; }
 
     /// <summary>
     /// Наименование портфеля
@@ -53,12 +58,17 @@ public class StrategyExecuteResultEntity : BaseEntity
     /// Количество сделок
     /// </summary>
     public int NumberPositions { get; set; }
-    
+
     /// <summary>
     /// Текущая позиция
     /// </summary>
-    public int CurrentPosition { get; set; }    
-    
+    public int CurrentPositionFirst { get; set; }
+
+    /// <summary>
+    /// Текущая позиция
+    /// </summary>
+    public int CurrentPositionSecond { get; set; }
+
     /// <summary>
     /// Текущая позиция (стоимость)
     /// </summary>

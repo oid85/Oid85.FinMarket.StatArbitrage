@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Oid85.FinMarket.StatArbitrage.Application.Helpers;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Repositories;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services;
 using Oid85.FinMarket.StatArbitrage.Application.Mapping;
@@ -25,8 +26,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// <inheritdoc />
         public async Task<BacktestResponse> BacktestAsync(BacktestRequest request)
         {
-            var algoSettings = options.Value;
-            var portfolioSettingsList = algoSettings.Portfolios;
+            var statArbitrageSettings = options.Value;
+            var portfolioSettingsList = statArbitrageSettings.Portfolios;
 
             if (!string.IsNullOrEmpty(request.PortfolioName))
                 portfolioSettingsList = [.. portfolioSettingsList.Where(x => x.Name == request.PortfolioName)];
@@ -54,8 +55,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// <inheritdoc />
         public async Task<OptimizationResponse> OptimizationAsync(OptimizationRequest request)
         {
-            var algoSettings = options.Value;
-            var portfolioSettingsList = algoSettings.Portfolios;
+            var statArbitrageSettings = options.Value;
+            var portfolioSettingsList = statArbitrageSettings.Portfolios;
 
             if (!string.IsNullOrEmpty(request.PortfolioName))
                 portfolioSettingsList = [.. portfolioSettingsList.Where(x => x.Name == request.PortfolioName)];
@@ -83,10 +84,10 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// <inheritdoc />
         public async Task<MonitorResponse> MonitorAsync(MonitorRequest request)
         {
-            var algoSettings = options.Value;
+            var statArbitrageSettings = options.Value;
 
             if (string.IsNullOrEmpty(request.PortfolioName))
-                request.PortfolioName = algoSettings.Portfolios.First().Name;
+                request.PortfolioName = statArbitrageSettings.Portfolios.First().Name;
 
             var strategyExecuteResults = await ExecuteAsync(
                 new()
@@ -100,8 +101,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var to = DateOnly.FromDateTime(DateTime.Today);
             var dates = DateUtils.GetDates(from, to);
 
-            var portfolioSettings = algoSettings.Portfolios.Find(x => x.Name == request.PortfolioName);
-            var tickers = algoSettings.TickerLists.Find(x => x.Name == portfolioSettings!.TickerList)!.Tickers;
+            var portfolioSettings = statArbitrageSettings.Portfolios.Find(x => x.Name == request.PortfolioName);
+            var tickers = statArbitrageSettings.TickerLists.Find(x => x.Name == portfolioSettings!.TickerList)!.Tickers;
 
             var response = new MonitorResponse { Dates = dates };
 
@@ -265,11 +266,11 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// <inheritdoc />
         public async Task<PortfolioListResponse> PortfolioListAsync(PortfolioListRequest request)
         {
-            var algoSettings = options.Value;
+            var statArbitrageSettings = options.Value;
 
             return new PortfolioListResponse
             {
-                Items = [.. algoSettings.Portfolios.Select(x => new PortfolioListItem { Name = x.Name, Description = x.Description })]
+                Items = [.. statArbitrageSettings.Portfolios.Select(x => new PortfolioListItem { Name = x.Name, Description = x.Description })]
             };
         }
 
@@ -280,26 +281,26 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         {
             var strategyExecuteResults = new List<StrategyExecuteResult>();
 
-            var algoSettings = options.Value;
-            var portfolioSettings = algoSettings.Portfolios.Find(x => x.Name == request.PortfolioName);
-            var tickers = algoSettings.TickerLists.Find(x => x.Name == portfolioSettings!.TickerList)!.Tickers;
+            var statArbitrageSettings = options.Value;
+            var portfolioSettings = statArbitrageSettings.Portfolios.Find(x => x.Name == request.PortfolioName);
+            var tickers = statArbitrageSettings.TickerLists.Find(x => x.Name == portfolioSettings!.TickerList)!.Tickers;
             var candleData = await GetCandleDataAsync(request.IsOptimization, tickers);
             var strategyData = GetStrategyData();
 
             foreach (var portfolioStrategySettings in portfolioSettings!.PortfolioStrategies)
             {
-                var strategySettings = algoSettings.Strategies.Find(x => x.Name == portfolioStrategySettings.Name);
+                var strategySettings = statArbitrageSettings.Strategies.Find(x => x.Name == portfolioStrategySettings.Name);
                 var strategy = strategyData[portfolioStrategySettings.Name];
 
                 foreach (var ticker in tickers)
                 {
-                    strategy.Ticker = ticker;
+                    //strategy.Ticker = ticker;
                     strategy.CandleData = candleData;
                     strategy.PortfolioName = portfolioSettings.Name;
-                    strategy.StabilizationPeriod = algoSettings.BacktestSettings.StabilizationPeriodInCandles;
+                    strategy.StabilizationPeriod = statArbitrageSettings.BacktestSettings.StabilizationPeriodInCandles;
                     strategy.ProcessName = request.ProcessName!;
 
-                    if (strategy.Candles is []) continue;
+                    //if (strategy.Candles is []) continue;
 
                     var parameterSets = request.IsOptimization
                         ? GetParameterSets(strategySettings!.StrategyParameters)
@@ -337,8 +338,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// </summary>
         private StrategyExecuteResult? Execute(Strategy strategy, Dictionary<string, int> parameterSet)
         {
-            var algoSettings = options.Value;
-            var portfolioSettings = algoSettings.Portfolios.Find(x => x.Name == strategy.PortfolioName);
+            var statArbitrageSettings = options.Value;
+            var portfolioSettings = statArbitrageSettings.Portfolios.Find(x => x.Name == strategy.PortfolioName);
 
             StrategyExecuteResult result;
 
@@ -366,11 +367,11 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// </summary>
         private Dictionary<string, Strategy> GetStrategyData()
         {
-            var algoSettings = options.Value;
+            var statArbitrageSettings = options.Value;
 
             var strategyDictionary = new Dictionary<string, Strategy>();
 
-            foreach (var strategySettings in algoSettings.Strategies)
+            foreach (var strategySettings in statArbitrageSettings.Strategies)
             {
                 var strategy = serviceProvider.GetRequiredKeyedService<Strategy>(strategySettings.Name);
 
@@ -388,7 +389,9 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// </summary>
         private async Task<Dictionary<string, List<Candle>>> GetCandleDataAsync(bool isOptimization, List<string> tickers)
         {
-            var dateRange = isOptimization ? GetOptimizationDates() : GetBacktestDates();
+            var dateRange = isOptimization 
+                ? StatArbitrageHelper.GetOptimizationDates(options.Value) 
+                : StatArbitrageHelper.GetBacktestDates(options.Value);
 
             var result = new Dictionary<string, List<Candle>>();
 
@@ -411,43 +414,6 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Получить даты для оптимизации
-        /// </summary>
-        private (DateOnly From, DateOnly To) GetOptimizationDates()
-        {
-            var algoSettings = options.Value;
-
-            var today = DateOnly.FromDateTime(DateTime.Today);
-
-            var from = today
-                .AddDays(-1 * algoSettings.BacktestSettings.BacktestWindowInDays)
-                .AddDays(-1 * algoSettings.BacktestSettings.StabilizationPeriodInCandles)
-                .AddDays(-1 * algoSettings.BacktestSettings.BacktestShiftInDays);
-
-            var to = today.AddDays(-1 * algoSettings.BacktestSettings.BacktestShiftInDays);
-
-            return (from, to);
-        }
-
-        /// <summary>
-        /// Получить даты для бэктеста
-        /// </summary>
-        private (DateOnly From, DateOnly To) GetBacktestDates()
-        {
-            var algoSettings = options.Value;
-
-            var today = DateOnly.FromDateTime(DateTime.Today);
-
-            var from = today
-                .AddDays(-1 * algoSettings.BacktestSettings.BacktestWindowInDays)
-                .AddDays(-1 * algoSettings.BacktestSettings.StabilizationPeriodInCandles);
-
-            var to = today;
-
-            return (from, to);
         }
 
         /// <summary>
@@ -507,7 +473,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var strategyExecuteResults = (await strategyExecuteResultRepository.GetFilteredAsync())
                 .Where(x => x.PortfolioName == portfolioName)
                 .Where(x => x.StrategyName == strategyName)
-                .Where(x => x.Ticker == ticker)
+                //.Where(x => x.Ticker == ticker)
                 .ToList();
 
             if (strategyExecuteResults is [])

@@ -2,31 +2,75 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Oid85.FinMarket.StatArbitrage.Infrastructure.Database;
 
 #nullable disable
 
-namespace Oid85.FinMarket.Algo.Infrastructure.Migrations
+namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Migrations
 {
     [DbContext(typeof(StatArbitrageContext))]
-    [Migration("20260706144556_06072026_2")]
-    partial class _06072026_2
+    partial class StatArbitrageContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns(modelBuilder);
 
-            modelBuilder.Entity("Oid85.FinMarket.Algo.Infrastructure.Database.Entities.StrategyExecuteResultEntity", b =>
+            modelBuilder.Entity("Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Entities.CorrelationEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("PortfolioName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TickerFirst")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TickerSecond")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CorrelationEntities", "public");
+                });
+
+            modelBuilder.Entity("Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Entities.ParameterEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParameterEntities", "public");
+                });
+
+            modelBuilder.Entity("Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Entities.StrategyExecuteResultEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -36,17 +80,20 @@ namespace Oid85.FinMarket.Algo.Infrastructure.Migrations
                     b.Property<double>("AnnualYieldReturn")
                         .HasColumnType("double precision");
 
-                    b.Property<double>("AverageProfit")
+                    b.Property<double>("AverageNetProfit")
                         .HasColumnType("double precision");
 
-                    b.Property<double>("AverageProfitPercent")
+                    b.Property<double>("AverageNetProfitPercent")
                         .HasColumnType("double precision");
-
-                    b.Property<int>("CurrentPosition")
-                        .HasColumnType("integer");
 
                     b.Property<double>("CurrentPositionCost")
                         .HasColumnType("double precision");
+
+                    b.Property<int>("CurrentPositionFirst")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CurrentPositionSecond")
+                        .HasColumnType("integer");
 
                     b.Property<double>("Drawdown")
                         .HasColumnType("double precision");
@@ -109,7 +156,11 @@ namespace Oid85.FinMarket.Algo.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Ticker")
+                    b.Property<string>("TickerFirst")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TickerSecond")
                         .IsRequired()
                         .HasColumnType("text");
 

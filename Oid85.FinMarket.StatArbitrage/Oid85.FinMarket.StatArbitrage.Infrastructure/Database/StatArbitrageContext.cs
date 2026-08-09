@@ -9,6 +9,7 @@ public class StatArbitrageContext(DbContextOptions<StatArbitrageContext> options
 {
     public DbSet<StrategyExecuteResultEntity> StrategyExecuteResultEntities { get; set; }
     public DbSet<ParameterEntity> ParameterEntities { get; set; }
+    public DbSet<CorrelationEntity> CorrelationEntities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

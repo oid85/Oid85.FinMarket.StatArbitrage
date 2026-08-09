@@ -5,9 +5,15 @@ public class Strategy
     public double StartMoney { get; set; }
 
     public double EndMoney { get; set; }
-    
-    public (string Left, string Right) Ticker { get; set; } = (string.Empty, string.Empty);    
-    
+
+    public (string First, string Second) Ticker { get; set; } = (string.Empty, string.Empty);
+
+    public (bool First, bool Second) IsFuture { get; set; } = (false, false);
+
+    public (double First, double Second) BasicAssetSize { get; set; } = (1.0, 1.0);
+
+    public (double First, double Second) Leverage { get; set; } = (1.0, 1.0);
+
     public string StrategyDescription { get; set; } = string.Empty;
     
     public string StrategyName { get; set; } = string.Empty;
@@ -16,9 +22,9 @@ public class Strategy
 
     public string ProcessName { get; set; } = string.Empty;
 
-    public DateOnly StartDate => Candles.First().Date;
+    public DateOnly StartDate => Candles.First.First().Date;
     
-    public DateOnly EndDate => Candles.Last().Date;
+    public DateOnly EndDate => Candles.First.Last().Date;
     
     public Dictionary<string, int> Parameters { get; set; } = [];
 
@@ -26,40 +32,59 @@ public class Strategy
     
     public Dictionary<string, List<Candle>> CandleData { get; set; } = [];
 
-    public List<Candle> Candles => CandleData[Ticker];
+    public (List<Candle> First, List<Candle> Second) Candles { get; set; } = ([], []);
 
-    public List<double> OpenPrices => [.. Candles.Select(x => x.Open)];
-    
-    public List<double> ClosePrices => [.. Candles.Select(x => x.Close)];
-    
-    public List<double> HighPrices => [.. Candles.Select(x => x.High)];
-    
-    public List<double> LowPrices => [.. Candles.Select(x => x.Low)];
+    public (List<double> First, List<double> Second) OpenPrices => (Candles.First.Select(x => x.Open).ToList(), Candles.Second.Select(x => x.Open).ToList());
+
+    public (List<double> First, List<double> Second) ClosePrices => (Candles.First.Select(x => x.Close).ToList(), Candles.Second.Select(x => x.Close).ToList());
+
+    public (List<double> First, List<double> Second) HighPrices => (Candles.First.Select(x => x.High).ToList(), Candles.Second.Select(x => x.High).ToList());
+
+    public (List<double> First, List<double> Second) LowPrices => (Candles.First.Select(x => x.Low).ToList(), Candles.Second.Select(x => x.Low).ToList());
+
+    public List<DateValue<double>> Spreads { get; set; } = [];
 
     public List<DiagramPoint> DiagramPoints { get; set; } = [];
     
-    public bool SignalLong { get; set; }
+    public bool SignalLongShort { get; set; }
     
-    public bool SignalShort { get; set; }
+    public bool SignalShortLong { get; set; }
 
-    public bool FilterLong { get; set; } = true;
+    public bool FilterLongShort { get; set; } = true;
 
-    public bool FilterShort { get; set; } = true;
+    public bool FilterShortLong { get; set; } = true;
     
-    public bool SignalCloseLong { get; set; }
+    public bool SignalCloseLongShort { get; set; }
     
-    public bool SignalCloseShort { get; set; }
-
-    public List<StopLimit?> StopLimits { get; set; } = [];
+    public bool SignalCloseShortLong { get; set; }
 
     public SortedDictionary<DateOnly, Position> Positions { get; set; } = [];
 
-    public int GetPositionSize(double orderPrice)
+    public (int First, int Second) GetPositionSize((double First, double Second) orderPrice)
     {
-        if (EndMoney <= orderPrice)
-            return 0;
+        if (EndMoney <= orderPrice.First + orderPrice.Second)
+            return (0, 0);
 
-        return orderPrice == 0.0 ? 0 : Convert.ToInt32(EndMoney / orderPrice);        
+        double money = EndMoney / 2.0;
+
+        (int First, int Second) positionSize = (0, 0);
+
+        if (IsFuture.First)
+            positionSize.First = orderPrice.First == 0.0 || BasicAssetSize.First == 0.0 ? 0 : Convert.ToInt32(money / (orderPrice.First * BasicAssetSize.First) * Leverage.First);
+
+        else
+            positionSize.First = orderPrice.First == 0.0 ? 0 : Convert.ToInt32(money / orderPrice.First * Leverage.First);
+
+        if (IsFuture.Second)
+            positionSize.Second = orderPrice.Second == 0.0 || BasicAssetSize.Second == 0.0 ? 0 : Convert.ToInt32(money / (orderPrice.Second * BasicAssetSize.Second) * Leverage.Second);
+
+        else
+            positionSize.Second = orderPrice.Second == 0.0 ? 0 : Convert.ToInt32(money / orderPrice.Second * Leverage.Second);
+
+        if (positionSize.First == 0 || positionSize.Second == 0)
+            return (0, 0);
+
+        return positionSize;
     }
 
     public Position? LastActivePosition {
@@ -76,21 +101,21 @@ public class Strategy
     }
 
     public Position? LastPosition => Positions.Count == 0 ? null : Positions.Last().Value;
-    
-    public int CurrentPosition
+
+    public (int First, int Second) CurrentPosition
     {
         get
         {
             if (LastActivePosition == null)
-                return 0;
+                return (0, 0);
 
-            if (LastActivePosition.IsLong)
-                return Math.Abs(LastActivePosition.Quantity);
+            if (LastActivePosition.IsLongShort)
+                return (Math.Abs(LastActivePosition.Quantity.First), -1 * Math.Abs(LastActivePosition.Quantity.Second));
 
-            if (LastActivePosition.IsShort)
-                return -1 * Math.Abs(LastActivePosition.Quantity);
+            if (LastActivePosition.IsShortLong)
+                return (-1 * Math.Abs(LastActivePosition.Quantity.First), Math.Abs(LastActivePosition.Quantity.Second));
 
-            return 0;
+            return (0, 0);
         }
     }
 
@@ -101,40 +126,38 @@ public class Strategy
             if (LastActivePosition == null)
                 return 0.0;
 
-            if (LastActivePosition.IsLong)
+            if (LastActivePosition.IsLongShort)
                 return LastActivePosition.Cost;
 
-            if (LastActivePosition.IsShort)
+            if (LastActivePosition.IsShortLong)
                 return -1 * Math.Abs(LastActivePosition.Cost);
 
             return 0.0;
         }
     }
-    
-    public void BuyAtPrice(int quantity, double price, int candleIndex) =>
-        AddTrade(
-            new()
-            {
-                CandleIndex = candleIndex,
-                Quantity = Math.Abs(quantity),
-                Price = price,
-                Date = Candles[candleIndex].Date
-            });
 
-    public void SellAtPrice(int quantity, double price, int candleIndex) =>
-        AddTrade(
-            new()
-            {
-                CandleIndex = candleIndex,
-                Quantity = -1 * Math.Abs(quantity),
-                Price = price,
-                Date = Candles[candleIndex].Date
-            });
+    public void BuySellAtPrice((int First, int Second) quantity, (double First, double Second) price, int candleIndex) =>
+        AddTrade(new Trade
+        {
+            CandleIndex = candleIndex,
+            Quantity = (Math.Abs(quantity.First), -1 * Math.Abs(quantity.Second)),
+            Price = (price.First, price.Second),
+            Date = Candles.First[candleIndex].Date
+        });
+
+    public void SellBuyAtPrice((int First, int Second) quantity, (double First, double Second) price, int candleIndex) =>
+        AddTrade(new Trade
+        {
+            CandleIndex = candleIndex,
+            Quantity = (-1 * Math.Abs(quantity.First), Math.Abs(quantity.Second)),
+            Price = (price.First, price.Second),
+            Date = Candles.First[candleIndex].Date
+        });
 
     private void AddTrade(Trade trade)
     {
-        if (trade.Quantity == 0)
-            return;                
+        if (trade.Quantity.First == 0 || trade.Quantity.Second == 0)
+            return;
 
         if (LastActivePosition is null)
             Positions.Add(
@@ -146,10 +169,10 @@ public class Strategy
                     EntryDate = trade.Date,
                     EntryCandleIndex = trade.CandleIndex,
                     IsActive = true,
-                    IsLong = trade.Quantity > 0,
-                    IsShort = trade.Quantity < 0,
-                    Quantity = trade.Quantity,
-                    Cost = trade.Quantity * trade.Price
+                    IsLongShort = trade.Quantity is { First: > 0, Second: < 0 },
+                    IsShortLong = trade.Quantity is { First: < 0, Second: > 0 },
+                    Quantity = (trade.Quantity.First, trade.Quantity.Second),
+                    Cost = Math.Abs(trade.Quantity.First) * trade.Price.First + Math.Abs(trade.Quantity.Second) * trade.Price.Second
                 });
 
         else
@@ -164,13 +187,19 @@ public class Strategy
             Positions[key].IsActive = false;
 
             double profit = 0.0;
-            
-            if (Positions[key].IsLong)
-                profit = Math.Abs(Positions[key].Quantity) * (Positions[key].ExitPrice!.Value - Positions[key].EntryPrice);
-            
-            if (Positions[key].IsShort)
-                profit = Math.Abs(Positions[key].Quantity) * (Positions[key].EntryPrice - Positions[key].ExitPrice!.Value);            
-            
+
+            if (Positions[key].IsLongShort)
+            {
+                profit += Math.Abs(Positions[key].Quantity.First) * (Positions[key].ExitPrice.First!.Value - Positions[key].EntryPrice.First);
+                profit += Math.Abs(Positions[key].Quantity.Second) * (Positions[key].EntryPrice.Second - Positions[key].ExitPrice.Second!.Value);
+            }
+
+            if (Positions[key].IsShortLong)
+            {
+                profit += Math.Abs(Positions[key].Quantity.First) * (Positions[key].EntryPrice.First - Positions[key].ExitPrice.First!.Value);
+                profit += Math.Abs(Positions[key].Quantity.Second) * (Positions[key].ExitPrice.Second!.Value - Positions[key].EntryPrice.Second);
+            }
+
             Positions[key].NetProfit = profit;
             Positions[key].NetProfitPercent = profit / EndMoney * 100.0;
             
@@ -200,44 +229,15 @@ public class Strategy
         }
     }
 
-    public void CloseAtStop(Position position, double stopPrice, int candleIndex)
-    {
-        if (StopLimits.Count != Candles.Count)
-        {
-            StopLimits.Clear();
-            
-            for (int i = 0; i < Candles.Count; i++) 
-                StopLimits.Add(null);            
-        }
-
-        // Если последняя свеча
-		if (candleIndex > StopLimits.Count - 1)
-			return;
-		
-		// Пробуем выйти по стопу
-		if (LastActivePosition is not null && StopLimits[candleIndex - 1] is not null)		
-		{
-			if (position.IsLong && Candles[candleIndex - 1].Close <= StopLimits[candleIndex - 1]!.StopPrice)			
-				SellAtPrice(position.Quantity, stopPrice, candleIndex);	
-			
-			else if (position.IsShort && Candles[candleIndex - 1].Close >= StopLimits[candleIndex - 1]!.StopPrice)			
-				BuyAtPrice(position.Quantity, stopPrice, candleIndex);				
-		}
-		
-		// Если не вышли, то переставляем стоп
-		if (LastActivePosition is not null)
-			StopLimits[candleIndex] = new StopLimit { StopPrice = stopPrice, Quantity = position.Quantity };
-    }    
-    
-    public void CloseAtPrice(Position position, double price, int candleIndex)
+    public void CloseAtPrice(Position position, (double First, double Second) price, int candleIndex)
     {
         // Отправляем команды, если длинная позиция
-        if (position.IsLong)
-            SellAtPrice(position.Quantity, price, candleIndex);
+        if (position.IsLongShort)
+            SellBuyAtPrice((position.Quantity.First, position.Quantity.Second), (price.First, price.Second), candleIndex);
 
         // Отправляем команды, если короткая позиция
-        else if (position.IsShort)
-            BuyAtPrice(position.Quantity, price, candleIndex);
+        else if (position.IsShortLong)
+            BuySellAtPrice((position.Quantity.First, position.Quantity.Second), (price.First, price.Second), candleIndex);
     }
 
     public Dictionary<DateOnly, double> EqiutyCurve { get; set; } = [];
@@ -291,7 +291,6 @@ public class Strategy
     public void Init(Dictionary<string, int> parameterSet, double money)
     {
         Parameters = parameterSet;
-        StopLimits.Clear();
         Positions.Clear();
         EqiutyCurve.Clear();
         DrawdownCurve.Clear();
@@ -299,11 +298,11 @@ public class Strategy
         EndMoney = money;
 
         DiagramPoints.Clear();
-        for (int i = 0; i < Candles.Count; i++)
+        for (int i = 0; i < Candles.First.Count; i++)
             DiagramPoints.Add(new()
             {
-                Index = Candles[i].Index,
-                Date = Candles[i].Date
+                Index = Candles.First[i].Index,
+                Date = Candles.First[i].Date
             });
     }
 }

@@ -4,6 +4,7 @@ using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Repositories;
 using Oid85.FinMarket.StatArbitrage.Core.Configuration;
 using Oid85.FinMarket.StatArbitrage.Core.Models;
 using Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Entities;
+using static Grpc.Core.Metadata;
 
 namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
 {
@@ -38,18 +39,18 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
 
         public async Task<List<StrategyExecuteResult>> GetFilteredAsync()
         {
-            var algoSettings = options.Value;
+            var statArbitrageSettings = options.Value;
 
             await using var context = await contextFactory.CreateDbContextAsync();
 
             var queryableEntities = context.StrategyExecuteResultEntities.AsQueryable();
 
-            queryableEntities = queryableEntities.Where(x => x.ProfitFactor >= algoSettings.StrategyExecuteResultFilter.MinProfitFactor);
-            queryableEntities = queryableEntities.Where(x => x.RecoveryFactor >= algoSettings.StrategyExecuteResultFilter.MinRecoveryFactor);
-            queryableEntities = queryableEntities.Where(x => x.WinningTradesPercent >= algoSettings.StrategyExecuteResultFilter.MinWinningTradesPercent);
-            queryableEntities = queryableEntities.Where(x => x.WinningTradesPercent <= algoSettings.StrategyExecuteResultFilter.MaxWinningTradesPercent);
-            queryableEntities = queryableEntities.Where(x => x.AnnualYieldReturn >= algoSettings.StrategyExecuteResultFilter.MinAnnualYieldReturn);
-            queryableEntities = queryableEntities.Where(x => x.MaxDrawdownPercent <= algoSettings.StrategyExecuteResultFilter.MaxDrawdownPercent);
+            queryableEntities = queryableEntities.Where(x => x.ProfitFactor >= statArbitrageSettings.StrategyExecuteResultFilter.MinProfitFactor);
+            queryableEntities = queryableEntities.Where(x => x.RecoveryFactor >= statArbitrageSettings.StrategyExecuteResultFilter.MinRecoveryFactor);
+            queryableEntities = queryableEntities.Where(x => x.WinningTradesPercent >= statArbitrageSettings.StrategyExecuteResultFilter.MinWinningTradesPercent);
+            queryableEntities = queryableEntities.Where(x => x.WinningTradesPercent <= statArbitrageSettings.StrategyExecuteResultFilter.MaxWinningTradesPercent);
+            queryableEntities = queryableEntities.Where(x => x.AnnualYieldReturn >= statArbitrageSettings.StrategyExecuteResultFilter.MinAnnualYieldReturn);
+            queryableEntities = queryableEntities.Where(x => x.MaxDrawdownPercent <= statArbitrageSettings.StrategyExecuteResultFilter.MaxDrawdownPercent);
 
             var entities = await queryableEntities.AsNoTracking().ToListAsync();
 
@@ -63,7 +64,8 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
             {
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                Ticker = entity.Ticker,
+                TickerFirst = entity.TickerFirst,
+                TickerSecond = entity.TickerSecond,
                 StrategyDescription = entity.StrategyDescription,
                 PortfolioName = entity.PortfolioName,
                 ProcessName = entity.ProcessName,
@@ -71,7 +73,8 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
                 StrategyParams = entity.StrategyParams,
                 StrategyParamsHash = entity.StrategyParamsHash,
                 NumberPositions = entity.NumberPositions,
-                CurrentPosition = entity.CurrentPosition,
+                CurrentPositionFirst = entity.CurrentPositionFirst,
+                CurrentPositionSecond = entity.CurrentPositionSecond,
                 CurrentPositionCost = entity.CurrentPositionCost,
                 ProfitFactor = entity.ProfitFactor,
                 RecoveryFactor = entity.RecoveryFactor,
@@ -95,7 +98,8 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
             {
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
-                Ticker = model.Ticker,
+                TickerFirst = model.TickerFirst,
+                TickerSecond = model.TickerSecond,
                 StrategyDescription = model.StrategyDescription,
                 PortfolioName = model.PortfolioName,
                 ProcessName = model.ProcessName,
@@ -103,7 +107,8 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
                 StrategyParams = model.StrategyParams,
                 StrategyParamsHash = model.StrategyParamsHash,
                 NumberPositions = model.NumberPositions,
-                CurrentPosition = model.CurrentPosition,
+                CurrentPositionFirst = model.CurrentPositionFirst,
+                CurrentPositionSecond = model.CurrentPositionSecond,
                 CurrentPositionCost = model.CurrentPositionCost,
                 ProfitFactor = model.ProfitFactor,
                 RecoveryFactor = model.RecoveryFactor,

@@ -13,7 +13,7 @@ namespace Oid85.FinMarket.StatArbitrage.WebHost.Controller;
 [Route("api/stat-arbitrage")]
 [ApiController]
 public class StatArbitrageController(
-    IStatArbitrageService algoService)
+    IStatArbitrageService statArbitrageService)
     : BaseController
 {
     /// <summary>
@@ -26,7 +26,7 @@ public class StatArbitrageController(
     public Task<IActionResult> PortfolioListAsync(
         [FromBody] PortfolioListRequest request) =>
         GetResponseAsync(
-            () => algoService.PortfolioListAsync(request),
+            () => statArbitrageService.PortfolioListAsync(request),
             result => new BaseResponse<PortfolioListResponse> { Result = result });
 
     /// <summary>
@@ -39,7 +39,7 @@ public class StatArbitrageController(
     public Task<IActionResult> GetPortfolioTotalSumAsync(
         [FromBody] GetPortfolioTotalSumRequest request) =>
         GetResponseAsync(
-            () => algoService.GetPortfolioTotalSumAsync(request),
+            () => statArbitrageService.GetPortfolioTotalSumAsync(request),
             result => new BaseResponse<GetPortfolioTotalSumResponse> { Result = result });
 
     /// <summary>
@@ -52,6 +52,6 @@ public class StatArbitrageController(
     public Task<IActionResult> EditPortfolioTotalSumAsync(
         [FromBody] EditPortfolioTotalSumRequest request) =>
         GetResponseAsync(
-            () => algoService.EditPortfolioTotalSumAsync(request),
-            result => new BaseResponse<EditPortfolioTotalSumResponse> { Result = result });    
+            () => statArbitrageService.EditPortfolioTotalSumAsync(request),
+            result => new BaseResponse<EditPortfolioTotalSumResponse> { Result = result });
 }

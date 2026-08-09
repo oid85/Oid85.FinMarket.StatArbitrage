@@ -11,9 +11,12 @@ public static class ServiceCollectionExtensions
     public static void ConfigureApplicationServices(
         this IServiceCollection services)
     {
-        services.AddScoped<IStatArbitrageService, StatArbitrageService>();
-        services.AddScoped<IDataService, DataService>();
+        services.AddScoped<ICorrelationService, CorrelationService>();
+        services.AddScoped<IRegressionTailService, RegressionTailService>();
+
         services.AddScoped<IMonitorService, MonitorService>();
+        services.AddScoped<IDataService, DataService>();
+        services.AddScoped<IStatArbitrageService, StatArbitrageService>();
 
         services.AddScoped<IIndicatorFactory, IndicatorFactory>();
 
