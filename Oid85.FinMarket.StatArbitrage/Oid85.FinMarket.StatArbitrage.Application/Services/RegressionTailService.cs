@@ -129,18 +129,27 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 30));
             var to = DateOnly.FromDateTime(DateTime.Today);
 
+            var dates = DateUtils.GetDates(from, to);
+
             var regressionTailSet = (await regressionTailRepository.GetAsync(request.PortfolioName));
 
             var response = new GetRegressionTailResponse
             { 
                 PortfolioName = request.PortfolioName,
+                Dates = dates,
                 Items = [.. regressionTailSet
                     .Select(x => 
                     new RegressionTailData
                     {
                         TickerFirst = x.TickerFirst,
                         TickerSecond = x.TickerSecond,
-                        Tails = [.. x.Tails.Where(x => x.Date >= from).Where(x => x.Date <= to)]
+                        Tails = [.. dates
+                            .Select(date => 
+                            new DateValue<double?>()
+                            {
+                                Date = date,
+                                Value = x.Tails.Find(dateValue => dateValue.Date == date)?.Value
+                            })]
                     })]
             };
 
