@@ -144,11 +144,35 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                         TickerFirst = x.TickerFirst,
                         TickerSecond = x.TickerSecond,
                         Tails = [.. dates
-                            .Select(date => 
-                            new DateValue<double?>()
+                            .Select(date =>
                             {
-                                Date = date,
-                                Value = x.Tails.Find(dateValue => dateValue.Date == date)?.Value
+                                double? value = x.Tails.Find(dateValue => dateValue.Date == date)?.Value;
+                                string colorFill = GetColor(value);
+
+                                return
+                                new RegressionTailDataItem()
+                                {
+                                    Date = date,
+                                    Value = value.RoundTo(2),
+                                    ColorFill = colorFill
+                                };
+
+                                static string GetColor(double? value)
+                                {
+                                    if (!value.HasValue)
+                                        return KnownColors.White;
+
+                                    return value.Value switch 
+                                    { 
+                                        >= 3.0 => KnownColors.DarkGreen, 
+                                        >= 2.0 => KnownColors.Green, 
+                                        >= 1.0 => KnownColors.LightGreen, 
+                                        >= -1.0 => KnownColors.White, 
+                                        >= -2.0 => KnownColors.LightRed, 
+                                        >= -3.0 => KnownColors.Red, 
+                                        _ => KnownColors.DarkRed
+                                    };
+                                }
                             })]
                     })]
             };
