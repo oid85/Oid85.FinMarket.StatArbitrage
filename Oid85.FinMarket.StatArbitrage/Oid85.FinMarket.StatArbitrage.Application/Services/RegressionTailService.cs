@@ -121,12 +121,14 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
         public async Task<GetRegressionTailResponse> GetRegressionTailAsync(GetRegressionTailRequest request)
         {
+            await CalculateRegressionTailAsync(new () { PortfolioName = request.PortfolioName });
+
             var statArbitrageSettings = options.Value;
 
             if (string.IsNullOrEmpty(request.PortfolioName))
                 request.PortfolioName = statArbitrageSettings.Portfolios.First().Name;
 
-            var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 30));
+            var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 15));
             var to = DateOnly.FromDateTime(DateTime.Today);
 
             var dates = DateUtils.GetDates(from, to);
