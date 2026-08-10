@@ -59,7 +59,8 @@ namespace Oid85.FinMarket.StatArbitrage.Infrastructure.Database.Repositories
                     Slope = x.Slope,
                     Intercept = x.Intercept,
                     Tails = JsonSerializer.Deserialize<List<DateValue<double>>>(x.Tails)!
-                })];
+                })
+                .OrderBy(x => x.TickerFirst)];
         }
     }
 }

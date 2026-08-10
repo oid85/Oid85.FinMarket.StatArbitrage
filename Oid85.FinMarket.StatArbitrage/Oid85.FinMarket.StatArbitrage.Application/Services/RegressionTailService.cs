@@ -44,12 +44,12 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                     ..correlations.Select(x => x.TickerSecond)
                     ];
 
-                var candleData = (await dataService.GetCandleDataAsync([.. tickers.Distinct()]))
+                var distinctTickers = tickers.Distinct().ToList();
+
+                var candleData = (await dataService.GetCandleDataAsync([.. distinctTickers]))
                     .Where(x => x.Value.Count > 0)
                     .Where(x => x.Key != KnownTickers.TMON)
                     .ToDictionary();
-
-                tickers = [.. candleData.Keys];
 
                 foreach (var correlation in correlations)
                 {
@@ -120,20 +120,23 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         }
 
         public async Task<GetRegressionTailResponse> GetRegressionTailAsync(GetRegressionTailRequest request)
-        {
-            await CalculateRegressionTailAsync(new () { PortfolioName = request.PortfolioName });
-
+        {            
             var statArbitrageSettings = options.Value;
 
             if (string.IsNullOrEmpty(request.PortfolioName))
                 request.PortfolioName = statArbitrageSettings.Portfolios.First().Name;
+
+            await CalculateRegressionTailAsync(new() { PortfolioName = request.PortfolioName });
 
             var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 15));
             var to = DateOnly.FromDateTime(DateTime.Today);
 
             var dates = DateUtils.GetDates(from, to);
 
-            var regressionTailSet = (await regressionTailRepository.GetAsync(request.PortfolioName));
+            var regressionTailSet = (await regressionTailRepository.GetAsync(request.PortfolioName))
+                .DistinctBy(x => $"{x.TickerFirst},{x.TickerSecond}")
+                .OrderBy(x => x.TickerFirst)
+                .ToList();
 
             var response = new GetRegressionTailResponse
             { 
