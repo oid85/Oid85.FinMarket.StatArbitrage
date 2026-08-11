@@ -316,8 +316,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
                     var parameterSets = request.IsOptimization
                         ? GetParameterSets(strategySettings!.StrategyParameters)
-                        : await GetParameterSets(
-                            portfolioSettings.Name, strategySettings!.Name, regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
+                        : await GetParameterSets(portfolioSettings.Name, strategySettings!.Name, regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
 
                     var results = Execute(strategy, parameterSets);
 
