@@ -299,7 +299,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                 {
                     strategy.Ticker = (regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
                     strategy.Tails = regressionTailSet.Tails;
-                    strategy.Candles = (candleData[regressionTailSet.TickerFirst], candleData[regressionTailSet.TickerSecond]);
+                    strategy.Candles = StatArbitrageHelper.SyncCandles(candleData[regressionTailSet.TickerFirst], candleData[regressionTailSet.TickerSecond]);
                     strategy.IsFuture = (
                         instrumentData[regressionTailSet.TickerFirst].Type == KnownInstrumentTypes.Future, 
                         instrumentData[regressionTailSet.TickerSecond].Type == KnownInstrumentTypes.Future);
@@ -316,7 +316,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
                     var parameterSets = request.IsOptimization
                         ? GetParameterSets(strategySettings!.StrategyParameters)
-                        : await GetParameterSets(portfolioSettings.Name, strategySettings!.Name, regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
+                        : await GetParameterSets(
+                            portfolioSettings.Name, strategySettings!.Name, regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
 
                     var results = Execute(strategy, parameterSets);
 
@@ -485,7 +486,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var strategyExecuteResults = (await strategyExecuteResultRepository.GetFilteredAsync())
                 .Where(x => x.PortfolioName == portfolioName)
                 .Where(x => x.StrategyName == strategyName)
-                .Where(x => x.TickerFirst == tickerFirst && x.TickerSecond == tickerSecond)
+                .Where(x => x.ProcessName == KnownProcessNames.Optimization)
+                .Where(x => x.TickerFirst == tickerFirst && x.TickerSecond == tickerSecond)                
                 .ToList();
 
             if (strategyExecuteResults is [])

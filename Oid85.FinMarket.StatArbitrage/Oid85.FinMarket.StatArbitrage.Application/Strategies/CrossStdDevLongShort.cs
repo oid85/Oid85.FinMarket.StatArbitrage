@@ -13,7 +13,7 @@ public class CrossStdDevLongShort : Strategy
         {
             var date = Candles.First[i].Date;
             var tail = Tails.Find(x => x.Date == date);
-            
+
             if (tail is null)
                 continue;
 
