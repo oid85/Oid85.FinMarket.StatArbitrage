@@ -18,11 +18,11 @@ public class CrossStdDevLongShort : Strategy
                 continue;
 
             // Правило входа
-            SignalLongShort = tail.Value > 0.0;
+            SignalLongShort = tail.Value < 0.0;
             SignalLongShort &= Math.Abs(tail.Value) >= stdDev;
 
             // Правило выхода
-            SignalCloseLongShort = tail.Value <= 0.0;
+            SignalCloseLongShort = tail.Value >= 0.0;
                 
             // Задаем цену для заявки
             var orderPrice = (Candles.First[i].Close, Candles.Second[i].Close);
