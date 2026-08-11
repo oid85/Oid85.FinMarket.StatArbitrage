@@ -18,6 +18,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         IDataService dataService,
         IMonitorService monitorService,
         IOptions<StatArbitrageSettings> options,
+        IRegressionTailRepository regressionTailRepository,
         IStrategyExecuteResultRepository strategyExecuteResultRepository,
         IParameterRepository parameterRepository,
         IServiceProvider serviceProvider)
@@ -284,27 +285,38 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var statArbitrageSettings = options.Value;
             var portfolioSettings = statArbitrageSettings.Portfolios.Find(x => x.Name == request.PortfolioName);
             var tickers = statArbitrageSettings.TickerLists.Find(x => x.Name == portfolioSettings!.TickerList)!.Tickers;
+            var instrumentData = await dataService.GetInstrumentDataAsync(tickers);
             var candleData = await GetCandleDataAsync(request.IsOptimization, tickers);
             var strategyData = GetStrategyData();
+            var regressionTailSets = await regressionTailRepository.GetAsync(portfolioSettings!.Name);
 
             foreach (var portfolioStrategySettings in portfolioSettings!.PortfolioStrategies)
             {
                 var strategySettings = statArbitrageSettings.Strategies.Find(x => x.Name == portfolioStrategySettings.Name);
                 var strategy = strategyData[portfolioStrategySettings.Name];
-
-                foreach (var ticker in tickers)
+                
+                foreach (var regressionTailSet in regressionTailSets)
                 {
-                    //strategy.Ticker = ticker;
+                    strategy.Ticker = (regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
+                    strategy.Tails = regressionTailSet.Tails;
+                    strategy.Candles = (candleData[regressionTailSet.TickerFirst], candleData[regressionTailSet.TickerSecond]);
+                    strategy.IsFuture = (
+                        instrumentData[regressionTailSet.TickerFirst].Type == KnownInstrumentTypes.Future, 
+                        instrumentData[regressionTailSet.TickerSecond].Type == KnownInstrumentTypes.Future);
+                    strategy.Leverage = (
+                        instrumentData[regressionTailSet.TickerFirst].Type == KnownInstrumentTypes.Future ? portfolioSettings.FutureLeverage : portfolioSettings.ShareLeverage,
+                        instrumentData[regressionTailSet.TickerSecond].Type == KnownInstrumentTypes.Future ? portfolioSettings.FutureLeverage : portfolioSettings.ShareLeverage);
                     strategy.CandleData = candleData;
                     strategy.PortfolioName = portfolioSettings.Name;
                     strategy.StabilizationPeriod = statArbitrageSettings.BacktestSettings.StabilizationPeriodInCandles;
                     strategy.ProcessName = request.ProcessName!;
 
-                    //if (strategy.Candles is []) continue;
+                    if (strategy.Candles.First is []) continue;
+                    if (strategy.Candles.Second is []) continue;
 
                     var parameterSets = request.IsOptimization
                         ? GetParameterSets(strategySettings!.StrategyParameters)
-                        : await GetParameterSets(portfolioSettings.Name, strategySettings!.Name, ticker);
+                        : await GetParameterSets(portfolioSettings.Name, strategySettings!.Name, regressionTailSet.TickerFirst, regressionTailSet.TickerSecond);
 
                     var results = Execute(strategy, parameterSets);
 
@@ -468,12 +480,12 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
         /// <summary>
         /// Получить параметры стратегии для бэктеста
         /// </summary>
-        private async Task<List<Dictionary<string, int>>> GetParameterSets(string portfolioName, string strategyName, string ticker)
+        private async Task<List<Dictionary<string, int>>> GetParameterSets(string portfolioName, string strategyName, string tickerFirst, string tickerSecond)
         {
             var strategyExecuteResults = (await strategyExecuteResultRepository.GetFilteredAsync())
                 .Where(x => x.PortfolioName == portfolioName)
                 .Where(x => x.StrategyName == strategyName)
-                //.Where(x => x.Ticker == ticker)
+                .Where(x => x.TickerFirst == tickerFirst && x.TickerSecond == tickerSecond)
                 .ToList();
 
             if (strategyExecuteResults is [])

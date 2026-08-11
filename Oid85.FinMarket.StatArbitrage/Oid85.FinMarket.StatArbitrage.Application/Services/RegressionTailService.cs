@@ -133,7 +133,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
             var dates = DateUtils.GetDates(from, to);
 
-            var regressionTailSet = (await regressionTailRepository.GetAsync(request.PortfolioName))
+            var regressionTailSets = (await regressionTailRepository.GetAsync(request.PortfolioName))
                 .DistinctBy(x => $"{x.TickerFirst},{x.TickerSecond}")
                 .OrderBy(x => x.TickerFirst)
                 .ToList();
@@ -142,7 +142,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             { 
                 PortfolioName = request.PortfolioName,
                 Dates = dates,
-                Items = [.. regressionTailSet
+                Items = [.. regressionTailSets
                     .Select(x => 
                     new RegressionTailData
                     {

@@ -3,6 +3,8 @@ using Oid85.FinMarket.StatArbitrage.Application.Factories;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Factories;
 using Oid85.FinMarket.StatArbitrage.Application.Interfaces.Services;
 using Oid85.FinMarket.StatArbitrage.Application.Services;
+using Oid85.FinMarket.StatArbitrage.Application.Strategies;
+using Oid85.FinMarket.StatArbitrage.Core.Models;
 
 namespace Oid85.FinMarket.StatArbitrage.Application.Extensions;
 
@@ -20,6 +22,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IIndicatorFactory, IndicatorFactory>();
 
-        // services.AddKeyedTransient<Strategy, UltimateSmootherInclinationLong>("UltimateSmootherInclinationLong");
+        services.AddKeyedTransient<Strategy, CrossStdDevLongShort>("CrossStdDevLongShort");
+        services.AddKeyedTransient<Strategy, CrossStdDevShortLong>("CrossStdDevShortLong");
     }
 }
