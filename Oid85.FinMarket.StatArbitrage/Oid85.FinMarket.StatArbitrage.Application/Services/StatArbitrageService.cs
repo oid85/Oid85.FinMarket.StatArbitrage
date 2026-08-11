@@ -17,6 +17,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
     public class StatArbitrageService(
         IDataService dataService,
         IMonitorService monitorService,
+        ICorrelationService correlationService,
+        IRegressionTailService regressionTailService,
         IOptions<StatArbitrageSettings> options,
         IRegressionTailRepository regressionTailRepository,
         IStrategyExecuteResultRepository strategyExecuteResultRepository,
@@ -64,6 +66,9 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
             foreach (var portfolioSetting in portfolioSettingsList)
             {
+                await correlationService.CalculateCorrelationAsync(new() { PortfolioName = portfolioSetting.Name });
+                await regressionTailService.CalculateRegressionTailAsync(new() { PortfolioName = portfolioSetting.Name });
+
                 string processName = KnownProcessNames.Optimization;
 
                 await strategyExecuteResultRepository.DeleteAsync(portfolioSetting.Name, processName);
