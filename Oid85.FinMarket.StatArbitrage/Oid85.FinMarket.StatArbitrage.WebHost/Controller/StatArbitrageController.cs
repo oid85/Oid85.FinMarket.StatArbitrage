@@ -17,6 +17,19 @@ public class StatArbitrageController(
     : BaseController
 {
     /// <summary>
+    /// Мониторинг
+    /// </summary>
+    [HttpPost("portfolio/monitor")]
+    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<MonitorResponse>), StatusCodes.Status500InternalServerError)]
+    public Task<IActionResult> MonitorAsync(
+        [FromBody] MonitorRequest request) =>
+        GetResponseAsync(
+            () => statArbitrageService.MonitorAsync(request),
+            result => new BaseResponse<MonitorResponse> { Result = result });
+
+    /// <summary>
     /// Список портфелей
     /// </summary>
     [HttpPost("portfolio/list")]

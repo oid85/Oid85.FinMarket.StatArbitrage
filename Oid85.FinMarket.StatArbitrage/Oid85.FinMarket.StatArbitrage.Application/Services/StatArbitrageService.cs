@@ -37,6 +37,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
             foreach (var portfolioSetting in portfolioSettingsList)
             {
+                await regressionTailService.CalculateRegressionTailAsync(new() { PortfolioName = portfolioSetting.Name });
+
                 string processName = KnownProcessNames.Backtest;
 
                 await strategyExecuteResultRepository.DeleteAsync(portfolioSetting.Name, processName);
@@ -95,6 +97,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             if (string.IsNullOrEmpty(request.PortfolioName))
                 request.PortfolioName = statArbitrageSettings.Portfolios.First().Name;
 
+            await regressionTailService.CalculateRegressionTailAsync(new() { PortfolioName = request.PortfolioName });
+
             var strategyExecuteResults = await ExecuteAsync(
                 new()
                 {
@@ -116,9 +120,9 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
             response.Series = 
                 [
-                    GetPortfolioBacktestSeries(portfolioData.EqiutyCurve, "Капитал, тыс. руб.", KnownColors.Green),
-                    GetPortfolioBacktestSeries(portfolioData.DrawdownCurve, "Просадка, тыс. руб.", KnownColors.Red),
-                    GetPortfolioBacktestSeries(portfolioData.MoneyCurve, "Ден. средства, тыс. руб.", KnownColors.LightBlue)
+                    GetPortfolioBacktestSeries(portfolioData.EqiutyCurve, "Капитал, руб.", KnownColors.Green),
+                    GetPortfolioBacktestSeries(portfolioData.DrawdownCurve, "Просадка, руб.", KnownColors.Red),
+                    GetPortfolioBacktestSeries(portfolioData.MoneyCurve, "Ден. средства, руб.", KnownColors.LightBlue)
                 ];
 
             response.Dates = dates;
@@ -206,9 +210,12 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                         {
                             Date = xx.Date,
                             Weight = xx.Weight,
-                            ColorFill = xx.Weight > 0 
-                                ? KnownColors.Green 
-                                : KnownColors.White
+                            ColorFill = xx.Weight switch
+                            {
+                                > 0 => KnownColors.Green,
+                                < 0 => KnownColors.Red,
+                                _ => KnownColors.White
+                            }
                         })]
                 })];
 
@@ -266,7 +273,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                 Name = $"{description}",
                 Color = color,
                 ColorFill = color,
-                Data = [.. dateValues.Select(x => new PortfolioBacktestSeriesItem { Date = x.Date, Value = (x.Value / 1000.0).RoundTo(4) })]
+                Data = [.. dateValues.Select(x => new PortfolioBacktestSeriesItem { Date = x.Date, Value = x.Value.RoundTo(2) })]
             };
 
         /// <inheritdoc />
