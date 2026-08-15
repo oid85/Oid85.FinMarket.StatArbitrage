@@ -77,7 +77,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                         // Создать новую позицию
                         if (targetSize != 0)
                         {
-                            var (position, moneyChange) = PortfolioPositionHelper.CreateNewPortfolioPosition(targetWeight, currentPrice, targetSize);                            
+                            var (position, moneyChange) = PortfolioPositionHelper.CreateNewPortfolioPosition(targetWeight, targetSize, currentPrice);                            
                             positions[ticker] = position;
                             money += moneyChange;
                         }
@@ -92,7 +92,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                             // Нарастить длинную позицию
                             if (targetSize > positions[ticker].Size)
                             {
-                                var (position, moneyChange) = PortfolioPositionHelper.UpLongPortfolioPosition(positions[ticker], targetWeight, currentPrice, targetSize);
+                                var (position, moneyChange) = PortfolioPositionHelper.UpLongPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
                                 positions[ticker] = position;
                                 money += moneyChange;
                             }
@@ -100,7 +100,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                             // Сократить длинную позицию
                             if (targetSize < positions[ticker].Size)
                             {
-                                var (position, moneyChange) = PortfolioPositionHelper.DownLongPortfolioPosition(positions[ticker], targetWeight, currentPrice, targetSize);
+                                var (position, moneyChange) = PortfolioPositionHelper.DownLongPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
                                 positions[ticker] = position;
                                 money += moneyChange;
                             }
@@ -109,34 +109,99 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                             if (targetSize == positions[ticker].Size)
                             {
                                 // Обновим данные по позиции
-                                positions[ticker].Cost = currentPrice * targetSize;
-                                positions[ticker].Profit = (currentPrice - positions[ticker].EntryPrice!.Value) * targetSize;
+                                positions[ticker].Profit = (currentPrice - positions[ticker].EntryPrice!.Value) * positions[ticker].Size;
                             }
                         }
 
-                        // Перевернуть длинную позицию (закрыть и открыть короткую позицию)
+                        // Перевернуть длинную позицию (закрыть длинную и открыть короткую позицию)
                         if (targetSize < 0)
                         {
-
+                            var (position, moneyChange) = PortfolioPositionHelper.ReverseLongPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
+                            positions[ticker] = position;
+                            money += moneyChange;
                         }
 
                         // Закрыть длинную позицию
                         if (targetSize == 0)
                         {
-
+                            var (position, moneyChange) = PortfolioPositionHelper.CloseLongPortfolioPosition(positions[ticker], currentPrice);
+                            positions[ticker] = position;
+                            money += moneyChange;
                         }
                     }
 
                     // Короткая позиция
                     else if (positions[ticker].Size < 0)
                     {
+                        // Изменить короткую позицию
+                        if (targetSize < 0)
+                        {
+                            // Нарастить короткую позицию
+                            if (targetSize < positions[ticker].Size)
+                            {
+                                var (position, moneyChange) = PortfolioPositionHelper.UpShortPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
+                                positions[ticker] = position;
+                                money += moneyChange;
+                            }
 
+                            // Сократить короткую позицию
+                            if (targetSize > positions[ticker].Size)
+                            {
+                                var (position, moneyChange) = PortfolioPositionHelper.DownShortPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
+                                positions[ticker] = position;
+                                money += moneyChange;
+                            }
+
+                            // Не менять короткую позицию
+                            if (targetSize == positions[ticker].Size)
+                            {
+                                // Обновим данные по позиции
+                                positions[ticker].Profit = (positions[ticker].EntryPrice!.Value - currentPrice) * positions[ticker].Size;
+                            }
+                        }
+
+                        // Перевернуть короткую позицию (закрыть короткую и открыть длинную позицию)
+                        if (targetSize > 0)
+                        {
+                            var (position, moneyChange) = PortfolioPositionHelper.ReverseShortPortfolioPosition(positions[ticker], targetWeight, targetSize, currentPrice);
+                            positions[ticker] = position;
+                            money += moneyChange;
+                        }
+
+                        // Закрыть короткую позицию
+                        if (targetSize == 0)
+                        {
+                            var (position, moneyChange) = PortfolioPositionHelper.CloseShortPortfolioPosition(positions[ticker], currentPrice);
+                            positions[ticker] = position;
+                            money += moneyChange;
+                        }
                     }
                 }
 
+                double sumPositions = 0.0;
+
+                foreach (var position in positions)
+                {
+                    if (position.Value.EntryPrice.HasValue)
+                    {
+                        double sumPosition = position.Value.EntryPrice.Value * position.Value.Size + position.Value.Profit;
+                        sumPositions += sumPosition;
+                    }
+                }
+
+                totalSum = sumPositions + money;
+
                 portfolioData.MoneyCurve.Add(new DateValue<double> { Date = date, Value = money });
                 portfolioData.EqiutyCurve.Add(new DateValue<double> { Date = date, Value = totalSum });
-                portfolioData.DrawdownCurve.Add(new DateValue<double> { Date = date, Value = 0.0 });
+
+                if (portfolioData.EqiutyCurve.Count > 0)
+                {
+                    var maxEquity = portfolioData.EqiutyCurve.MaxBy(x => x.Value);
+                    var currentEquity = portfolioData.EqiutyCurve[^1];
+                    var currentDrawdown = -1 * (maxEquity!.Value - currentEquity.Value);
+
+                    portfolioData.DrawdownCurve.Add(new DateValue<double> { Date = currentEquity.Date, Value = currentDrawdown });
+                }
             }
 
             return portfolioData;
