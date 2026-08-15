@@ -151,7 +151,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Helpers
         public static (PortfolioPosition Position, double MoneyChange) ReverseLongPortfolioPosition(
             PortfolioPosition currentPosition, int targetWeight, int targetSize, double currentPrice)
         {
-            // Закрываем длинную позицию       
+            // Закрываем длинную позицию
             double moneyChangeCloseLong = currentPosition.EntryPrice!.Value * currentPosition.Size + (currentPrice - currentPosition.EntryPrice!.Value) * currentPosition.Size;
 
             // Открываем короткую позицию
@@ -173,7 +173,7 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Helpers
         public static (PortfolioPosition Position, double MoneyChange) ReverseShortPortfolioPosition(
             PortfolioPosition currentPosition, int targetWeight, int targetSize, double currentPrice)
         {
-            // Закрываем короткую позицию       
+            // Закрываем короткую позицию
             double moneyChangeCloseShort = currentPosition.EntryPrice!.Value * currentPosition.Size + (currentPosition.EntryPrice!.Value - currentPrice) * currentPosition.Size;
 
             // Открываем длинную позицию
