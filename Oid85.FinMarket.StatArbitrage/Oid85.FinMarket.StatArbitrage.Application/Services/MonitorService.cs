@@ -21,8 +21,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             if (strategyExecuteResults is [])
                 return new();
 
-            double money = portfolioSettings!.Money;
-            double totalSum = portfolioSettings!.Money;
+            double money = strategyExecuteResults.Count * 1_000_000.0; // portfolioSettings!.Money;
+            double totalSum = strategyExecuteResults.Count * 1_000_000.0; // portfolioSettings!.Money;
 
             var from = DateOnly.FromDateTime(DateTime.Today.AddDays(-1 * 365));
             var to = DateOnly.FromDateTime(DateTime.Today);
@@ -30,8 +30,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
 
             List<string> tickersFromStrategyExecuteResults = [
                 .. strategyExecuteResults.Select(x => x.TickerFirst),
-                .. strategyExecuteResults.Select(x => x.TickerSecond),
-                KnownTickers.TMON];
+                .. strategyExecuteResults.Select(x => x.TickerSecond)
+                ];
 
             List<string> tickers = [.. tickersFromStrategyExecuteResults.Distinct()];
 
@@ -44,8 +44,8 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
             var leverages = instrumentData.ToDictionary(
                 k => k.Key, 
                 v => v.Value.Type == KnownInstrumentTypes.Future
-                    ? portfolioSettings.FutureLeverage
-                    : portfolioSettings.ShareLeverage);
+                    ? portfolioSettings!.FutureLeverage
+                    : portfolioSettings!.ShareLeverage);
 
             var positionWeightData = MonitorHelper.GetPositionWeightData(strategyExecuteResults, tickers, dates);
 
@@ -59,15 +59,16 @@ namespace Oid85.FinMarket.StatArbitrage.Application.Services
                 if (weightsSum == 0.0)
                     continue;
 
-                double baseUnit = totalSum / strategyExecuteResults.Count;
+                double baseUnit = totalSum / (strategyExecuteResults.Count * 2);
 
-                foreach (var ticker in tickers.Where(x => x != KnownTickers.TMON))
+                foreach (var ticker in tickers)
                 {
                     double currentPrice = dataService.GetPrice(ticker, date) ?? 0.0;
 
                     if (currentPrice == 0.0) continue;
 
                     int targetWeight = weights.Find(x => x.Ticker == ticker)?.Weight ?? 0;
+
                     double targetCost = baseUnit * Math.Abs(targetWeight);
                     int targetSize = Convert.ToInt32(Math.Truncate((targetCost / currentPrice) / lots[ticker]) * lots[ticker]);
                     
